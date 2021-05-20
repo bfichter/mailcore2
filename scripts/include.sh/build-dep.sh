@@ -12,7 +12,7 @@ build_git_ios()
   devicearchs="armv7 armv7s arm64"
 
   versions_path="$scriptpath/deps-versions.plist"
-  version="`defaults read "$versions_path" "$name" 2>/dev/null`"
+  version="`/usr/libexec/PlistBuddy -c \"print :"$name"\" "$versions_path"  2>/dev/null`"
   version="$(($version+1))"
   if test x$build_for_external = x1 ; then
     version=0
@@ -158,13 +158,13 @@ build_git_osx()
   sdk="`xcodebuild -showsdks 2>/dev/null | grep macosx | grep -v driverkit | sed 's/.*macosx\(.*\)/\1/'`"
   archs="x86_64"
   sdkminversion="10.7"
-  
+
   if test "x$name" = x ; then
     return
   fi
-  
+
   versions_path="$scriptpath/deps-versions.plist"
-  version="`defaults read "$versions_path" "$name" 2>/dev/null`"
+  version="`/usr/libexec/PlistBuddy -c \"print :"$name"\" "$versions_path"  2>/dev/null`"
   version="$(($version+1))"
   if test x$build_for_external = x1 ; then
     version=0
@@ -224,7 +224,7 @@ build_git_osx()
     exit 1
   fi
   echo finished
-  
+
   if echo $library|grep '\.framework$'>/dev/null ; then
     cd "$tmpdir/bin/Release"
     defaults write "$tmpdir/bin/Release/$library/Resources/Info.plist" "git-rev" "$rev"
@@ -294,22 +294,22 @@ get_prebuilt_dep()
   if test "x$name" = x ; then
     return
   fi
-  
+
   versions_path="$scriptpath/deps-versions.plist"
   installed_versions_path="$scriptpath/installed-deps-versions.plist"
   if test ! -f "$versions_path" ; then
     build_for_external=1 "$scriptpath/build-$name.sh"
     return;
   fi
-  
-  installed_version="`defaults read "$installed_versions_path" "$name" 2>/dev/null`"
+
+  installed_version="`/usr/libexec/PlistBuddy -c \"print :"$name"\" "$installed_versions_path"  2>/dev/null`"
   if test ! -d "$scriptpath/../Externals/$name" ; then
     installed_version=
   fi
   if test "x$installed_version" = x ; then
     installed_version="none"
   fi
-  version="`defaults read "$versions_path" "$name" 2>/dev/null`"
+  version="`/usr/libexec/PlistBuddy -c \"print :"$name"\" "$versions_path"  2>/dev/null`"
 
   echo $name, installed: $installed_version, required: $version
   if test "x$installed_version" = "x$version" ; then
@@ -318,7 +318,7 @@ get_prebuilt_dep()
 
   BUILD_TIMESTAMP=`date +'%Y%m%d%H%M%S'`
   tempbuilddir="$scriptpath/../Externals/workdir/$BUILD_TIMESTAMP"
-  
+
   mkdir -p "$tempbuilddir"
   cd "$tempbuilddir"
   echo "Downloading $name-$version"
@@ -333,7 +333,7 @@ get_prebuilt_dep()
   cd ..
   rm -f "$scriptpath/../Externals/git-rev"
   rm -rf "$tempbuilddir"
-  
+
   if test -d "$scriptpath/../Externals/$name" ; then
     defaults write "$installed_versions_path" "$name" "$version"
     plutil -convert xml1 "$installed_versions_path"
